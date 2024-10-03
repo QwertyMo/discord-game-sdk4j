@@ -134,6 +134,39 @@ public class Core implements AutoCloseable
 		this.voiceManager = new VoiceManager(corePrivate);
 	}
 
+	public Core(CreateParams params, LogLevel minLevel, BiConsumer<LogLevel, String> logHook)
+	{
+		this.minLogLevel = minLevel;
+		this.logHook = logHook;
+		this.createParams = params;
+		this.state = ConnectionState.HANDSHAKE;
+		this.gson = new Gson();
+		this.nonce = 0;
+		this.handlers = new HashMap<>();
+		this.corePrivate = new CorePrivate();
+		this.events = new Events(corePrivate);
+		this.eventAdapter = createParams.eventAdapter;
+
+		try
+		{
+			channel = Core.getDiscordChannel();
+			this.sendHandshake();
+			runCallbacks();
+			channel.configureBlocking(false);
+		}
+		catch(IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+
+		this.activityManager = new ActivityManager(corePrivate);
+		this.overlayManager = new OverlayManager(corePrivate);
+		this.userManager = new UserManager(corePrivate);
+		this.relationshipManager = new RelationshipManager(corePrivate);
+		this.imageManager = new ImageManager(corePrivate);
+		this.voiceManager = new VoiceManager(corePrivate);
+	}
+
 	public class CorePrivate
 	{
 		private CorePrivate() {}
